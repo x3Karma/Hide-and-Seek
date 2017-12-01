@@ -1,2 +1,14 @@
 # Hide-and-Seek
-https://www.youtube.com/watch?v=m2_X_sktuJ8
+Prop Hunt but invisible spies. Requires TF2Attributes.
+
+## Gamemode
+Only played on Attack/Defend maps (objectives are disabled). A mapcycle of the stock maps is provided.
+
+**Seekers - Pyros**
+- kill all the spies
+- can respawn
+
+**Hiders - Spies**
+- survive the massacre
+- moved to team seekers on death
+- round ends when team has nobody left
