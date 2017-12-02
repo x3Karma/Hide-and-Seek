@@ -1,5 +1,6 @@
 #include <sourcemod>
 #include <sdktools>
+#include <sdkhooks>
 #include <tf2>
 #include <tf2_stocks>
 #include <tf2attributes>
@@ -44,12 +45,19 @@ public void OnMapStart()
 
 public void OnClientPutInServer(int client)
 {
+	SDKHook(client, SDKHook_SetTransmit, Hook_SetTransmit);
+	
 	if (g_bRoundActive)
 		g_bHiding[client] = false;
 }
 
 public void OnClientDisconnect(int client)
 {
+	if (GetPlayersCount(2) == 0)
+	{
+		ServerCommand("mp_forcewin 3");
+	}
+	
 	if (IsValidClient(client))
 		if (client == g_iSeeker) UpdateSeeker();
 }
@@ -206,11 +214,8 @@ void FixWeapons(int client)
 	{
 		if (GetClientTeam(client) == view_as<int>(TFTeam_Red))
 		{
-			for (int i = 0; i <= 4; i++) {
-				if (i != 1 && i != 4) TF2_RemoveWeaponSlot(client, i);
-			}
-			
-			TF2_SwitchtoSlot(client, TFWeaponSlot_Secondary);
+			TF2_RemoveWeaponSlot(client, 0);
+			TF2_SwitchtoSlot(client, TFWeaponSlot_Melee);
 		}
 		
 		/* else if (GetClientTeam(client) == view_as<int>(TFTeam_Blue))
@@ -330,6 +335,13 @@ public DisableCap(const char[] output, int caller, int activator, float delay)
 
 public Action BlockCMD(int client, const char[] command, int iArgs)
 {
+	return Plugin_Handled;
+}
+
+public Action Hook_SetTransmit(int entity, int client)
+{
+	if (GetClientTeam(client) == view_as<int>(TFTeam_Blue) && GetClientTeam(entity) == view_as<int>(TFTeam_Red) || client == entity) return Plugin_Continue;
+	else if (GetClientTeam(client) == view_as<int>(TFTeam_Red) && GetClientTeam(entity) == view_as<int>(TFTeam_Red)) return Plugin_Handled;
 	return Plugin_Handled;
 }
 
