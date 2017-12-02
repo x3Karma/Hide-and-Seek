@@ -5,6 +5,8 @@
 #include <tf2attributes>
 #include <morecolors>
 
+int g_iSeeker;
+
 bool
 	g_bRoundActive			  = false;
 	g_bHiding[MAXPLAYERS + 1] = false;
@@ -32,7 +34,7 @@ public void OnPluginStart()
 
 public void OnMapStart()
 {
-	HookEntityOutput("trigger_capture_area", "OnStartCap", StartCap);
+	HookEntityOutput("trigger_capture_area", "OnStartCap", DisableCap);
 	
 	UpdateConVars();
 	EnableBalancing();
@@ -46,14 +48,52 @@ public void OnClientPutInServer(int client)
 		g_bHiding[client] = false;
 }
 
+public void OnClientDisconnect(int client)
+{
+	if (IsValidClient(client))
+		if (client == g_iSeeker) UpdateSeeker();
+}
+
+void UpdateSeeker()
+{
+	g_iSeeker = GetRandomPlayer();
+	
+	for (int client = 1; client <= MaxClients; client++) 
+	{
+		if (IsValidClient(client))
+		{
+			if (client == g_iSeeker)
+			{
+				g_bHiding[client] = false;
+				
+				if (GetClientTeam(client) == view_as<int>(TFTeam_Red))
+					ChangeClientTeam(client, 3);
+			}
+			else if (client != g_iSeeker)
+			{
+				g_bHiding[client] = true;
+				
+				if (GetClientTeam(client) == view_as<int>(TFTeam_Blue))
+					ChangeClientTeam(client, 2);
+			}
+		}
+	}
+}
+
 public Action Event_RoundStart(Handle hEvent, const char[] sName, bool bDontBroadcast) 
 {
 	EnableBalancing();
+	DeleteLockers();
+	
+	UpdateSeeker();
+	
+	g_bRoundActive = false;
 }
 
 public Action Event_SetupFinished(Handle hEvent, const char[] sName, bool bDontBroadcast) 
 {
 	DisableBalancing();
+	DeleteDoors();
 	
 	g_bRoundActive = true;
 	
@@ -66,6 +106,11 @@ public Action Event_SetupFinished(Handle hEvent, const char[] sName, bool bDontB
 			else
 				g_bHiding[client] = false;
 		}
+	}
+	
+	if (GetPlayersCount(2) == 0)
+	{
+		ServerCommand("mp_forcewin 3");
 	}
 }
 
@@ -105,9 +150,10 @@ public Action Event_PlayerSpawn(Handle hEvent, const char[] sName, bool bDontBro
 				TF2_RespawnPlayer(client);
 			}
 			
-			TF2Attrib_SetByName(client, "mult cloak meter consume rate", 1.0);
-			TF2Attrib_SetByName(client, "mult cloak meter regen rate", 1.0);
-			TF2Attrib_SetByName(client, "max health additive penalty", 25.0);
+			TF2Attrib_SetByName(client, "become fireproof on hit by fire", 1.0);
+			TF2Attrib_SetByName(client, "cloak consume rate increased", 5.0);
+			TF2Attrib_SetByName(client, "cloak regen rate increased", 5.0);
+			TF2Attrib_SetByName(client, "max health additive penalty", -25.0);
 		}
 		
 		else if (GetClientTeam(client) == view_as<int>(TFTeam_Blue))
@@ -123,6 +169,10 @@ public Action Event_PlayerSpawn(Handle hEvent, const char[] sName, bool bDontBro
 				TF2_SetPlayerClass(client, TFClass_Pyro);
 				TF2_RespawnPlayer(client);
 			}
+			
+			TF2Attrib_SetByName(client, "maxammo primary increased", 2.0);
+			TF2Attrib_SetByName(client, "flame size penalty", 5.0);
+			TF2Attrib_SetByName(client, "flame life penalty", 5.0);
 		}
 		
 		FixWeapons(client);
@@ -135,14 +185,17 @@ public Action Event_PlayerDeath(Handle hEvent, const char[] sName, bool bDontBro
 {
 	int client = GetClientOfUserId(GetEventInt(hEvent, "userid"));
 	
-	if (GetClientTeam(client) == view_as<int>(TFTeam_Red))
+	if (g_bRoundActive)
 	{
-		ChangeClientTeam(client, 3);
-	}
-	
-	if (GetPlayersCount(2) == 0)
-	{
-		ServerCommand("mp_forcewin 3");
+		if (GetClientTeam(client) == view_as<int>(TFTeam_Red))
+		{
+			ChangeClientTeam(client, 3);
+		}
+		
+		if (GetPlayersCount(2) == 0)
+		{
+			ServerCommand("mp_forcewin 3");
+		}
 	}
 }
 
@@ -153,20 +206,20 @@ void FixWeapons(int client)
 		if (GetClientTeam(client) == view_as<int>(TFTeam_Red))
 		{
 			for (int i = 0; i <= 4; i++) {
-				if (i != 2 && i != 4) TF2_RemoveWeaponSlot(client, i);
+				if (i != 1 && i != 4) TF2_RemoveWeaponSlot(client, i);
 			}
 			
 			TF2_SwitchtoSlot(client, TFWeaponSlot_Melee);
 		}
 		
-		else if (GetClientTeam(client) == view_as<int>(TFTeam_Blue))
+		/* else if (GetClientTeam(client) == view_as<int>(TFTeam_Blue))
 		{
 			for (int i = 0; i <= 2; i++) {
 				if (i != 0) TF2_RemoveWeaponSlot(client, i);
 			}
 			
 			TF2_SwitchtoSlot(client, TFWeaponSlot_Primary);
-		}
+		} */
 	} 
 }
 
@@ -194,7 +247,7 @@ void UpdateConVars()
 void EnableBalancing()
 {
 	SetConVarInt(FindConVar("mp_teams_unbalance_limit"), 1);
-	SetConVarInt(FindConVar("mp_autoteambalance"), 0);
+	SetConVarInt(FindConVar("mp_autoteambalance"), 1);
 }
 
 void DisableBalancing()
@@ -203,20 +256,73 @@ void DisableBalancing()
 	SetConVarInt(FindConVar("mp_autoteambalance"), 0);
 }
 
+void DeleteLockers()
+{
+	int iRegenerate = -1;
+	while ((iRegenerate = FindEntityByClassname(iRegenerate, "func_regenerate")) != -1)
+	{
+		AcceptEntityInput(iRegenerate, "Kill");
+	}
+}
+
+void DeleteDoors()
+{
+	int iDoor = -1;
+	while ((iDoor = FindEntityByClassname(iDoor, "func_door")) != -1)
+	{
+		AcceptEntityInput(iDoor, "Open");
+		AcceptEntityInput(iDoor, "Unlock");
+	}
+	
+	int iAreaPortal = -1;
+	while ((iAreaPortal = FindEntityByClassname(iAreaPortal, "func_areaportal")) != -1)
+	{
+		AcceptEntityInput(iAreaPortal, "Open");
+	}
+	
+	int iFilter = -1;
+	while ((iFilter = FindEntityByClassname(iFilter, "filter_activator_tfteam")) != -1)
+	{
+		SetVariantInt(0);
+		AcceptEntityInput(iFilter, "SetTeam");
+	}
+	
+	int iVisualizer = -1;
+	while ((iVisualizer = FindEntityByClassname(iVisualizer, "func_respawnroomvisualizer")) != -1)
+	{
+		AcceptEntityInput(iVisualizer, "Kill");
+	}
+	
+	int iRespawn = -1;
+	while ((iRespawn = FindEntityByClassname(iRespawn, "func_respawnroom")) != -1)
+	{
+		AcceptEntityInput(iRespawn, "Kill");
+	}
+}
+
 stock int GetPlayersCount(int team) 
 { 
 	int iCount, i; iCount = 0; 
 
 	for (i = 1; i <= MaxClients; i++)
 	{
-		if(IsClientInGame(i) && GetClientTeam(i) == team) 
+		if(IsValidClient(i) && IsPlayerAlive(i) && GetClientTeam(i) == team) 
 			iCount++; 
 	}
 
 	return iCount; 
 }
 
-public StartCap(const char[] output, int caller, int activator, float delay)
+stock int GetRandomPlayer() 
+{
+	int[] clients = new int[MaxClients+1]; int clientCount;
+	for (int i = 1; i <= MaxClients; i++)
+		if (IsValidClient(i))
+			clients[clientCount++] = i;
+	return (clientCount == 0) ? -1 : clients[GetRandomInt(0, clientCount-1)];
+}
+
+public DisableCap(const char[] output, int caller, int activator, float delay)
 {
 	AcceptEntityInput(caller, "Disable");
 }
