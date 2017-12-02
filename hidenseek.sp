@@ -69,6 +69,7 @@ void UpdateSeeker()
 				if (GetClientTeam(client) == view_as<int>(TFTeam_Red))
 					ChangeClientTeam(client, 3);
 			}
+			
 			else if (client != g_iSeeker)
 			{
 				g_bHiding[client] = true;
@@ -209,7 +210,7 @@ void FixWeapons(int client)
 				if (i != 1 && i != 4) TF2_RemoveWeaponSlot(client, i);
 			}
 			
-			TF2_SwitchtoSlot(client, TFWeaponSlot_Melee);
+			TF2_SwitchtoSlot(client, TFWeaponSlot_Secondary);
 		}
 		
 		/* else if (GetClientTeam(client) == view_as<int>(TFTeam_Blue))
