@@ -2,7 +2,7 @@
 Prop Hunt but invisible spies. Requires TF2Attributes.
 
 ## Gamemode
-Only played on Attack/Defend maps (objectives are disabled). A mapcycle of the stock maps is provided.
+Only played on Attack/Defend and Payload maps (objectives are disabled). A mapcycle of the stock maps is provided.
 
 **Seekers - Pyros**
 - kill all the spies
