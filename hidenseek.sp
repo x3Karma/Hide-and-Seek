@@ -4,7 +4,6 @@
 #include <tf2>
 #include <tf2_stocks>
 #include <tf2attributes>
-#include <morecolors>
 
 int g_iSeeker;
 
