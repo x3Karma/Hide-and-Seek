@@ -214,9 +214,16 @@ public Action Event_PlayerDeath(Handle hEvent, const char[] sName, bool bDontBro
 			ChangeClientTeam(client, 3);
 		}
 		
-		if (GetPlayersCount(2) == 0)
+		/*if (GetPlayersCount(2) == 0)
 		{
 			ServerCommand("mp_forcewin 3");
+		}*/
+		
+		new playerCount = GetTeamPlayerCount(2);
+	
+		if (playerCount == 0)
+		{
+			forceWin(3);
 		}
 	}
 }
