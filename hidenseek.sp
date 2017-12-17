@@ -52,9 +52,16 @@ public void OnClientPutInServer(int client)
 
 public void OnClientDisconnect(int client)
 {
-	if (GetPlayersCount(2) == 0)
+	/*if (GetPlayersCount(2) == 0)
 	{
 		ServerCommand("mp_forcewin 3");
+	}*/
+	
+	new playerCount = GetTeamPlayerCount(2);
+	
+	if (playerCount == 0)
+	{
+		forceWin(3);
 	}
 	
 	if (IsValidClient(client))
@@ -116,9 +123,16 @@ public Action Event_SetupFinished(Handle hEvent, const char[] sName, bool bDontB
 		}
 	}
 	
-	if (GetPlayersCount(2) == 0)
+	/*if (GetPlayersCount(2) == 0)
 	{
 		ServerCommand("mp_forcewin 3");
+	}*/
+	
+	new playerCount = GetTeamPlayerCount(2);
+	
+	if (playerCount == 0)
+	{
+		forceWin(3);
 	}
 }
 
@@ -360,4 +374,38 @@ stock bool IsValidClient(int client, bool bReplay = true)
 	if (bReplay && (IsClientSourceTV(client) || IsClientReplay(client)))
 		return false;
 	return true;
+}
+
+public forceWin(int team))
+{
+	new iEnt = -1;
+	iEnt = FindEntityByClassname(iEnt, "game_round_win");
+	
+	if (iEnt < 1)
+	{
+		iEnt = CreateEntityByName("game_round_win");
+		if (IsValidEntity(iEnt))
+			DispatchSpawn(iEnt);
+		else
+		{
+			PrintToServer("Unable to find or create a game_round_win entity!");
+			ForceWin2(team);
+			return Plugin_Handled;
+		}
+	}
+	
+	if (team == 1)
+		team--;
+	
+	SetVariantInt(team);
+	AcceptEntityInput(iEnt, "SetTeam");
+	AcceptEntityInput(iEnt, "RoundWin");
+	
+	return Plugin_Handled;
+}
+
+public ForceWin2(team)
+{
+	ServerCommand("mp_forcewin " + team);
+	return Plugin_Handled;
 }
