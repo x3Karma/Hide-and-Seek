@@ -217,14 +217,23 @@ void FixWeapons(int client)
 			TF2_SwitchtoSlot(client, TFWeaponSlot_Melee);
 		}
 		
-		/* else if (GetClientTeam(client) == view_as<int>(TFTeam_Blue))
+		else if (GetClientTeam(client) == view_as<int>(TFTeam_Blue))
 		{
-			for (int i = 0; i <= 2; i++) {
+			/*for (int i = 0; i <= 2; i++) {
 				if (i != 0) TF2_RemoveWeaponSlot(client, i);
 			}
 			
-			TF2_SwitchtoSlot(client, TFWeaponSlot_Primary);
-		} */
+			TF2_SwitchtoSlot(client, TFWeaponSlot_Primary);*/
+			
+			new weapon = GetPlayerWeaponSlot(client, TFWeaponSlot_Secondary);
+			new index = GetEntProp(weapon, Prop_Send, "m_iItemDefinitionIndex");
+			
+			if (index == 12)
+			{
+				TF2_RemoveWeaponSlot(client, TFWeaponSlot_Secondary);
+				TF2_SwitchtoSlot(client, TFWeaponSlot_Primary);
+			}
+		}
 	} 
 }
 
