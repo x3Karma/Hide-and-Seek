@@ -418,6 +418,8 @@ public forceWin(int team)
 
 public ForceWin2(team)
 {
-	ServerCommand("mp_forcewin " + team);
+	char steam;
+	IntToString(team, steam, sizeof(steam));
+	ServerCommand("mp_forcewin %s", steam);
 	return Plugin_Handled;
 }
