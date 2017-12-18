@@ -70,28 +70,32 @@ public void OnClientDisconnect(int client)
 
 void UpdateSeeker()
 {
-	g_iSeeker = GetRandomPlayer();
-	
-	for (int client = 1; client <= MaxClients; client++) 
-	{
-		if (IsValidClient(client))
+	if (!g_bRoundActive) {
+		g_iSeeker = GetRandomPlayer();
+		
+		for (int client = 1; client <= MaxClients; client++) 
 		{
-			if (client == g_iSeeker)
+			if (IsValidClient(client))
 			{
-				g_bHiding[client] = false;
+				if (client == g_iSeeker)
+				{
+					g_bHiding[client] = false;
 				
-				if (GetClientTeam(client) == view_as<int>(TFTeam_Red))
-					ChangeClientTeam(client, 3);
-			}
-			
-			else if (client != g_iSeeker)
-			{
-				g_bHiding[client] = true;
+					if (GetClientTeam(client) == view_as<int>(TFTeam_Red))
+						ChangeClientTeam(client, 3);
+				}
 				
-				if (GetClientTeam(client) == view_as<int>(TFTeam_Blue))
-					ChangeClientTeam(client, 2);
+				else if (client != g_iSeeker)
+				{
+					g_bHiding[client] = true;
+				
+					if (GetClientTeam(client) == view_as<int>(TFTeam_Blue))
+						ChangeClientTeam(client, 2);
+				}
 			}
 		}
+	} else {
+		g_iSeeker = GetRandomBluePlayer();
 	}
 }
 
@@ -360,6 +364,19 @@ stock int GetRandomPlayer()
 		if (IsValidClient(i))
 			clients[clientCount++] = i;
 	return (clientCount == 0) ? -1 : clients[GetRandomInt(0, clientCount-1)];
+}
+
+stock int GetRandomBluePlayer()
+{
+	if (GetTeamClientCount > 0)
+	{
+		int[] clients = new int[MaxClients+1]; int clientCount;
+		for (int i = 1; i <= MaxClients; i++)
+			if (IsValidClient(i))
+				if (GetClientTeam(i) == view_as<int>(TFTeam_Blue))
+					clients[clientCount++] = i;
+		return (clientCount == 0) ? -1 : clients[GetRandomInt(0, clientCount-1)];
+	}
 }
 
 public DisableCap(const char[] output, int caller, int activator, float delay)
