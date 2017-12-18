@@ -195,6 +195,8 @@ public Action Event_PlayerSpawn(Handle hEvent, const char[] sName, bool bDontBro
 			TF2Attrib_SetByName(client, "maxammo primary increased", 2.0);
 			TF2Attrib_SetByName(client, "flame size penalty", 5.0);
 			TF2Attrib_SetByName(client, "flame life penalty", 5.0);
+			TF2Attrib_RemoveByName(client, "become fireproof on hit by fire");
+			TF2Attrib_RemoveByName(client, "max health additive penalty");
 		}
 		
 		FixWeapons(client);
