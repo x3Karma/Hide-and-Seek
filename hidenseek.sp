@@ -435,7 +435,7 @@ public forceWin(int team)
 
 public ForceWin2(team)
 {
-	char steam;
+	new String:steam[64];
 	IntToString(team, steam, sizeof(steam));
 	ServerCommand("mp_forcewin %s", steam);
 	return Plugin_Handled;
