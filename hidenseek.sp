@@ -388,7 +388,7 @@ stock bool IsValidClient(int client, bool bReplay = true)
 	return true;
 }
 
-public forceWin(int team))
+public forceWin(int team)
 {
 	new iEnt = -1;
 	iEnt = FindEntityByClassname(iEnt, "game_round_win");
