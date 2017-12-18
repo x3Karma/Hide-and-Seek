@@ -255,10 +255,10 @@ void FixWeapons(int client)
 			
 			TF2_SwitchtoSlot(client, TFWeaponSlot_Primary);*/
 			
-			new weapon = GetPlayerWeaponSlot(client, TFWeaponSlot_Secondary);
-			new index = GetEntProp(weapon, Prop_Send, "m_iItemDefinitionIndex");
+			decl String:wpn[64];
+			GetEdictClassname(TFWeaponSlot_Secondary, wpn, sizeof(wpn));
 			
-			if (index == 12)
+			if (StrEqual(wpn, "tf_weapon_shotgun") || StrEqual(wpn, "tf_weapon_shotgun_pyro"))
 			{
 				TF2_RemoveWeaponSlot(client, TFWeaponSlot_Secondary);
 				TF2_SwitchtoSlot(client, TFWeaponSlot_Primary);
