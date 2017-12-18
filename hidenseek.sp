@@ -208,9 +208,12 @@ public Action Event_PlayerSpawn(Handle hEvent, const char[] sName, bool bDontBro
 public Action Event_PlayerDeath(Handle hEvent, const char[] sName, bool bDontBroadcast) 
 {
 	int client = GetClientOfUserId(GetEventInt(hEvent, "userid"));
+	new flags = GetEventInt(event, "death_flags");
 	
 	if (g_bRoundActive)
 	{
+		if (flags & 32)
+			return;
 		if (GetClientTeam(client) == view_as<int>(TFTeam_Red))
 		{
 			ChangeClientTeam(client, 3);
