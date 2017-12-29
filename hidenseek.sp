@@ -175,11 +175,15 @@ public Action Event_PlayerSpawn(Handle hEvent, const char[] sName, bool bDontBro
 				TF2_SetPlayerClass(client, TFClass_Spy);
 				TF2_RespawnPlayer(client);
 			}
+			new weapon = GetPlayerWeaponSlot(client, TFWeaponSlot_Secondary);
+			new index = GetEntProp(weapon, Prop_Send, "m_iItemDefinitionIndex");
 			
+			TF2Attrib_RemoveAll(client);
 			TF2Attrib_SetByName(client, "become fireproof on hit by fire", 1.0);
 			TF2Attrib_SetByName(client, "cloak consume rate increased", 5.0);
 			TF2Attrib_SetByName(client, "cloak regen rate increased", 5.0);
-			TF2Attrib_SetByName(client, "max health additive penalty", -25.0);
+			if (index != 356 || index != 461)
+				TF2Attrib_SetByName(client, "max health additive penalty", -25.0);
 		}
 		
 		else if (GetClientTeam(client) == view_as<int>(TFTeam_Blue))
